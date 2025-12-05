@@ -1,5 +1,8 @@
 using api.Data;
+using api.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using api.Repository;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
+builder.Services.AddScoped<ICryptoAssetRepository, CryptoAssetRepository>();
 
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
 {
