@@ -14,6 +14,7 @@ public static class CryptoAssetMappers
             Id = cryptoAssetModel.Id,
             Symbol = cryptoAssetModel.Symbol,
             Name = cryptoAssetModel.Name,
+            ExternalId = cryptoAssetModel.ExternalId,
             Price = cryptoAssetModel.Price,
             LogoUrl =  cryptoAssetModel.LogoUrl,
             Change24HPercent = $"{changeConvert}{cryptoAssetModel.Change24HPercent:0.00}%"
@@ -26,6 +27,7 @@ public static class CryptoAssetMappers
         {
             Symbol = createCryptoAssetRequesDto.Symbol,
             Name = createCryptoAssetRequesDto.Name,
+            ExternalId = createCryptoAssetRequesDto.ExternalId,
             Price = createCryptoAssetRequesDto.Price,
             
             Change24HPercent = createCryptoAssetRequesDto.Change24HPercent

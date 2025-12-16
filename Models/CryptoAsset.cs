@@ -7,6 +7,7 @@ public class CryptoAsset
     public int Id { get; set; }
     public string Symbol { get; set; } = string.Empty; // btc
     public string Name { get; set; } = string.Empty; // bitcoin
+    public string ExternalId { get; set; } = string.Empty;
     public string? LogoUrl { get; set; }
     
     [Column(TypeName = "decimal(18,2)")]
