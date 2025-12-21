@@ -17,7 +17,8 @@ public static class CryptoAssetMappers
             ExternalId = cryptoAssetModel.ExternalId,
             Price = cryptoAssetModel.Price,
             LogoUrl =  cryptoAssetModel.LogoUrl,
-            Change24HPercent = $"{changeConvert}{cryptoAssetModel.Change24HPercent:0.00}%"
+            Change24HPercent = $"{changeConvert}{cryptoAssetModel.Change24HPercent:0.00}%",
+            Comments = cryptoAssetModel.Comments.Select(c => c.ToCommentDto()).ToList()
         };
     }
 

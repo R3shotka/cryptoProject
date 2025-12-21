@@ -16,12 +16,12 @@ public class CryptoAssetRepository : ICryptoAssetRepository
     }
     public async Task<List<CryptoAsset>> GetAllAsync()
     {
-        return await _context.CryptoAssets.ToListAsync();
+        return await _context.CryptoAssets.Include(c => c.Comments).ToListAsync();
     }
 
     public async Task<CryptoAsset?> GetByIdAsync(int id)
     {
-        return await _context.CryptoAssets.FirstOrDefaultAsync(c => c.Id == id);
+        return await _context.CryptoAssets.Include(c => c.Comments).FirstOrDefaultAsync(c => c.Id == id);
         
     }
 
@@ -59,5 +59,10 @@ public class CryptoAssetRepository : ICryptoAssetRepository
         _context.CryptoAssets.Remove(cryptoAssetModel);
         await _context.SaveChangesAsync();
         return cryptoAssetModel;
+    }
+
+    public Task<bool> CryptoAssetExists(int id)
+    {
+        return _context.CryptoAssets.AnyAsync(c => c.Id == id);
     }
 }

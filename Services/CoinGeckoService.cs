@@ -52,36 +52,43 @@ public class CoinGeckoService : ICoinGeckoService
     
     }
 
-    public async Task<CryptoMarketDto> GetMarketAsync(string externalId, string vsCurrency = "usd")
+    public async Task<CryptoMarketDto?> GetMarketAsync(string externalId, string vsCurrency = "usd")
     {
         if (string.IsNullOrWhiteSpace(externalId))
-            return new CryptoMarketDto();
-        
+            return null;
+
         var url = $"coins/markets?vs_currency={vsCurrency}&ids={Uri.EscapeDataString(externalId)}";
-        
-        List<CoinGeckoMarketItem>? response = null;
-        
+
         try
         {
-            response = await _httpClient.GetFromJsonAsync<List<CoinGeckoMarketItem>>(url);
+            var resp = await _httpClient.GetAsync(url);
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                var body = await resp.Content.ReadAsStringAsync();
+                _logger.LogWarning("CoinGecko market failed. Status={Status}. Url={Url}. Body={Body}",
+                    resp.StatusCode, url, body);
+                return null;
+            }
+
+            var response = await resp.Content.ReadFromJsonAsync<List<CoinGeckoMarketItem>>();
+            var item = response?.FirstOrDefault();
+            if (item == null) return null;
+
+            return new CryptoMarketDto
+            {
+                ExternalId = item.id,
+                Price = (decimal)item.current_price,
+                Change24HPercent = (decimal)(item.price_change_percentage_24h ?? 0)
+            };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calling CoinGecko market data");
+            _logger.LogError(ex, "Error calling CoinGecko market data. Url={Url}", url);
             return null;
         }
-        
-        var item = response?.FirstOrDefault();
-        if (item == null)
-            return null;
-
-        return new CryptoMarketDto
-        {
-            ExternalId = item.id,
-            Price = (decimal)item.current_price,
-            Change24HPercent = (decimal)(item.price_change_percentage_24h ?? 0)
-        };
     }
+
     
     private class CoinGeckoSearchResponse
     {

@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using api.Repository;
 using api.Interfaces;
 using api.Repository;
+using api.Services;
+using api.InterfacesService;
 
 namespace api.Controllers;
 [Route("api/CryptoAsset")]
@@ -15,10 +17,12 @@ public class CryptoAssetController : ControllerBase
     
     private readonly ApplicationDBContext _context;
     private readonly ICryptoAssetRepository _cryptoAssetRepo;
-    public CryptoAssetController(ApplicationDBContext context,  ICryptoAssetRepository cryptoAssetRepo)
+    private readonly ICoinGeckoService _coinGeckoService;
+    public CryptoAssetController(ApplicationDBContext context,  ICryptoAssetRepository cryptoAssetRepo, ICoinGeckoService coinGeckoService)
     {
         _context = context;
         _cryptoAssetRepo = cryptoAssetRepo;
+        _coinGeckoService = coinGeckoService;
     }
 
     [HttpGet]
@@ -28,6 +32,8 @@ public class CryptoAssetController : ControllerBase
         var cryptoAssetDto = cryptoAssets.Select(c => c.ToCryptoAssetDto()).ToList();
         return Ok(cryptoAssetDto);
     }
+    
+    
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById([FromRoute] int id)
@@ -39,6 +45,36 @@ public class CryptoAssetController : ControllerBase
         }
         return Ok(cryptoAsset.ToCryptoAssetDto());
     }
+    
+    
+    [HttpGet("{id}/live")]
+    public async Task<IActionResult> GetByIdWithCoinGeckoMarket([FromRoute] int id)
+    {
+        var cryptoAsset = await _cryptoAssetRepo.GetByIdAsync(id);
+        if (cryptoAsset == null)
+        {
+            return NotFound();
+        }
+        
+        var dto = cryptoAsset.ToCryptoAssetDto();
+        if (!String.IsNullOrWhiteSpace(dto.ExternalId))
+        {
+            
+            var market = await _coinGeckoService.GetMarketAsync(dto.ExternalId);
+            
+            if (market != null)
+            {
+                var changeConvert = market.Change24HPercent > 0 ? "+" : "";
+                dto.Price = market.Price;
+                dto.Change24HPercent = $"{changeConvert}{market.Change24HPercent:0.00}%";
+            }
+        }
+        
+        
+        return Ok(dto);
+    }
+    
+    
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateCryptoAssetRequesDto createCryptoAssetRequesDto)

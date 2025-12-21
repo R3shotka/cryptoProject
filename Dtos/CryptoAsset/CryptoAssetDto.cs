@@ -1,3 +1,6 @@
+using api.Models;
+using api.Dtos.Comment;
+
 namespace api.Dtos.CryptoAsset;
 
 public class CryptoAssetDto
@@ -8,10 +11,9 @@ public class CryptoAssetDto
     public string ExternalId { get; set; } = string.Empty;
     public decimal Price { get; set; }
     public string? LogoUrl { get; set; }
-    
-    
-    
     public string Change24HPercent { get; set; }  = string.Empty;
-    
-    
+
+    public List<CommentDto?> Comments { get; set; }
+
+
 }
