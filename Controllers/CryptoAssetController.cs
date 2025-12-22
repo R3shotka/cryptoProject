@@ -8,6 +8,7 @@ using api.Interfaces;
 using api.Repository;
 using api.Services;
 using api.InterfacesService;
+using api.Helpers;
 
 namespace api.Controllers;
 [Route("api/CryptoAsset")]
@@ -26,9 +27,9 @@ public class CryptoAssetController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] QueryObject query)
     {
-        var cryptoAssets = await _cryptoAssetRepo.GetAllAsync();
+        var cryptoAssets = await _cryptoAssetRepo.GetAllAsync(query);
         var cryptoAssetDto = cryptoAssets.Select(c => c.ToCryptoAssetDto()).ToList();
         return Ok(cryptoAssetDto);
     }

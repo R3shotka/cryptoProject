@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using api.Data;
 using api.Dtos.Comment;
+using api.Dtos.CryptoAsset;
 using api.Interfaces;
 using api.Mappers;
 using api.Models;
@@ -30,7 +31,7 @@ public class CommentController : ControllerBase
         return Ok(commentsDto);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
     public async Task<ActionResult> GetById(int id)
     {
         var comment = await _commentRepo.GetByIdAsync(id);
@@ -43,9 +44,13 @@ public class CommentController : ControllerBase
         return Ok(comment.ToCommentDto());
     }
 
-    [HttpPost("{cryptoAssetId}")]
-    public async Task<ActionResult> Create([FromRoute] int cryptoAssetId, CreateCommentDto createCommentDto)
+    [HttpPost("{cryptoAssetId:int}")]
+    public async Task<ActionResult> Create([FromRoute] int cryptoAssetId, [FromBody] CreateCommentDto createCommentDto)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         if (!await _cryptoAssetRepo.CryptoAssetExists(cryptoAssetId))
         {
             return BadRequest("the crypto is not exist");
@@ -54,6 +59,35 @@ public class CommentController : ControllerBase
         var commentModel = createCommentDto.ToCommentFromCreateDto(cryptoAssetId);
         
         await _commentRepo.CreateAsync(commentModel);
-        return CreatedAtAction(nameof(GetById), new {id =  cryptoAssetId}, commentModel.ToCommentDto());
+        return CreatedAtAction(nameof(GetById), new {id =  commentModel.Id}, commentModel.ToCommentDto());
+    }
+
+    [HttpPut("{id:int}")]
+    
+    public async Task<ActionResult> Update([FromRoute] int id, [FromBody] UpdateCommentDto updateCommentDto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        var commentModel = updateCommentDto.ToCommentFromUpdateDto();
+        
+        var comment = await _commentRepo.UpdateAsync(id, commentModel);
+        if (comment is null)
+        {
+            return NotFound();
+        }
+        return Ok(comment.ToCommentDto());
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<ActionResult> Delete([FromRoute] int id)
+    {
+        var comment = await _commentRepo.DeleteAsync(id);
+        if (comment is null)
+        {
+            return NotFound();
+        }
+        return NoContent();
     }
 }

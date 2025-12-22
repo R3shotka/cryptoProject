@@ -1,5 +1,6 @@
 using api.Data;
 using api.Dtos.CryptoAsset;
+using api.Helpers;
 using api.Interfaces;
 using api.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -14,9 +15,20 @@ public class CryptoAssetRepository : ICryptoAssetRepository
     {
         _context = context;
     }
-    public async Task<List<CryptoAsset>> GetAllAsync()
+    public async Task<List<CryptoAsset>> GetAllAsync(QueryObject query)
     {
-        return await _context.CryptoAssets.Include(c => c.Comments).ToListAsync();
+        var assets = _context.CryptoAssets.Include(c => c.Comments).AsQueryable();
+        if (!string.IsNullOrWhiteSpace(query.Symbol))
+        {
+            assets = assets.Where(c => c.Symbol.Contains(query.Symbol));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Name))
+        {
+            assets = assets.Where(c => c.Name.Contains(query.Name));
+        }
+        
+        return await assets.ToListAsync();
     }
 
     public async Task<CryptoAsset?> GetByIdAsync(int id)

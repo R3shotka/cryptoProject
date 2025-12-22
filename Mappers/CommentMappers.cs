@@ -29,4 +29,13 @@ public static class CommentMappers
         };
     }
 
+    public static Comment ToCommentFromUpdateDto(this UpdateCommentDto updateCommentDto)
+    {
+        return new Comment
+        {
+            Title = updateCommentDto.Title,
+            Content = updateCommentDto.Content,
+        };
+    }
+
 }

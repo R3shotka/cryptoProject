@@ -33,4 +33,31 @@ public class CommentRepository : ICommentRepository
         await _context.SaveChangesAsync();
         return comment;
     }
+
+    public async Task<Comment?> UpdateAsync(int id, Comment comment)
+    {
+        var existComment = await _context.Comments.FindAsync(id);
+        if (existComment is null)
+        {
+            return null;
+        }
+        
+        existComment.Title = comment.Title;
+        existComment.Content = comment.Content;
+        await _context.SaveChangesAsync();
+        return existComment;
+    }
+
+    public async Task<Comment?> DeleteAsync(int id)
+    {
+        var existComment = await _context.Comments.FirstOrDefaultAsync(c => c.Id == id);
+        if (existComment is null)
+        {
+            return null;
+        }
+
+        _context.Comments.Remove(existComment);
+        await _context.SaveChangesAsync();
+        return existComment;
+    }
 }
