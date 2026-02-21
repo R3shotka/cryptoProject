@@ -27,8 +27,26 @@ public class CryptoAssetRepository : ICryptoAssetRepository
         {
             assets = assets.Where(c => c.Name.Contains(query.Name));
         }
+
+        if (!string.IsNullOrWhiteSpace(query.SortBy))
+        {
+            if (query.SortBy == "Symbol")
+            {
+                assets = query.IsDescending ? assets.OrderByDescending(c => c.Symbol) : assets.OrderBy(c => c.Symbol);
+            }
+            else if (query.SortBy == "Change24HPercent")
+            {
+                assets = query.IsDescending ? assets.OrderByDescending(c => c.Change24HPercent) : assets.OrderBy(c => c.Change24HPercent);
+            }
+            else if (query.SortBy == "Price")
+            {
+                assets = query.IsDescending ?  assets.OrderByDescending(c => c.Price) : assets.OrderBy(c => c.Price);
+            }
+        }
         
-        return await assets.ToListAsync();
+        var skipNumber = (query.PageNumber - 1) * query.PageSize;
+        
+        return await assets.Skip(skipNumber).Take(query.PageSize).ToListAsync();
     }
 
     public async Task<CryptoAsset?> GetByIdAsync(int id)
