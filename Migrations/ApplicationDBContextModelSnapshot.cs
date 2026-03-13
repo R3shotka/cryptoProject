@@ -51,13 +51,13 @@ namespace api.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "eecf417e-73f3-4c44-92ad-cf32fd016708",
+                            Id = "d39921b7-994e-468b-a2ef-075757acbd4a",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "f24514ed-bdc3-44b6-8596-3caf60c7769a",
+                            Id = "ec56da53-d23a-44e3-86bf-ad242f65d982",
                             Name = "User",
                             NormalizedName = "USER"
                         });
@@ -297,6 +297,21 @@ namespace api.Migrations
                     b.ToTable("CryptoAssets");
                 });
 
+            modelBuilder.Entity("api.Models.UserAssetBalance", b =>
+                {
+                    b.Property<string>("AppUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("CryptoAssetId")
+                        .HasColumnType("int");
+
+                    b.HasKey("AppUserId", "CryptoAssetId");
+
+                    b.HasIndex("CryptoAssetId");
+
+                    b.ToTable("UserAssetBalances");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -357,9 +372,35 @@ namespace api.Migrations
                     b.Navigation("CryptoAsset");
                 });
 
+            modelBuilder.Entity("api.Models.UserAssetBalance", b =>
+                {
+                    b.HasOne("api.Models.AppUser", "AppUser")
+                        .WithMany("UserAssetBalances")
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("api.Models.CryptoAsset", "CryptoAsset")
+                        .WithMany("UserAssetBalances")
+                        .HasForeignKey("CryptoAssetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+
+                    b.Navigation("CryptoAsset");
+                });
+
+            modelBuilder.Entity("api.Models.AppUser", b =>
+                {
+                    b.Navigation("UserAssetBalances");
+                });
+
             modelBuilder.Entity("api.Models.CryptoAsset", b =>
                 {
                     b.Navigation("Comments");
+
+                    b.Navigation("UserAssetBalances");
                 });
 #pragma warning restore 612, 618
         }

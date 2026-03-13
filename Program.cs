@@ -8,6 +8,7 @@ using api.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 //export DOTNET_ROOT="/opt/homebrew/opt/dotnet@8/libexec"
 //export PATH="/opt/homebrew/opt/dotnet@8/bin:$PATH"
@@ -18,6 +19,35 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(option =>
+{
+    option.SwaggerDoc("v1", new OpenApiInfo { Title = "Demo API", Version = "v1" });
+    option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Please enter a valid token",
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+    });
+    option.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type=ReferenceType.SecurityScheme,
+                    Id="Bearer"
+                }
+            },
+            new string[]{}
+        }
+    });
+});
+
 builder.Services.AddControllers().AddNewtonsoftJson(options =>
 {
     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
@@ -33,6 +63,7 @@ builder.Services.AddHttpClient<ICoinGeckoService, CoinGeckoService>(client =>
 });
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IUserAssetsBalanceRepository, UserAssetsBalanceRepository>();
 
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
 {
@@ -50,6 +81,9 @@ builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
     })
     .AddEntityFrameworkStores<ApplicationDBContext>();
 
+var secret = builder.Configuration["JWT:SigningKey"];
+Console.WriteLine($"JWT Secret length: {secret?.Length}");
+Console.WriteLine($"JWT Secret value: {secret}");
 builder.Services.AddAuthentication
     (options =>
     {
@@ -63,6 +97,7 @@ builder.Services.AddAuthentication
             
     }).AddJwtBearer(options =>
 {
+    options.IncludeErrorDetails = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -70,12 +105,24 @@ builder.Services.AddAuthentication
         ValidateAudience = true,
         ValidAudience = builder.Configuration["JWT:Audience"],
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"]!))
+        IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JWT:SigningKey"]!))
+    };
+    
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            Console.WriteLine("\n=== ДЕТАЛІ ПОМИЛКИ ТОКЕНА ===");
+            Console.WriteLine(context.Exception.Message);
+            Console.WriteLine("===============================\n");
+            return Task.CompletedTask;
+        }
     };
 });
 
 
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
