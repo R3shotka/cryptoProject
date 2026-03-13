@@ -9,6 +9,7 @@ using api.Repository;
 using api.Services;
 using api.InterfacesService;
 using api.Helpers;
+using Microsoft.AspNetCore.Authorization;
 
 namespace api.Controllers;
 [Route("api/CryptoAsset")]
@@ -27,6 +28,7 @@ public class CryptoAssetController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> GetAll([FromQuery] QueryObject query)
     {
         var cryptoAssets = await _cryptoAssetRepo.GetAllAsync(query);

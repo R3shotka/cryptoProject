@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models;
 
+[Table("CryptoAssets")]
 public class CryptoAsset
 {
     public int Id { get; set; }
@@ -17,4 +18,5 @@ public class CryptoAsset
     public decimal Change24HPercent { get; set; }
     
     public List<Comment> Comments { get; set; } = new List<Comment>();
+    public List<UserAssetBalance> UserAssetBalances { get; set; } = new List<UserAssetBalance>();
 }
