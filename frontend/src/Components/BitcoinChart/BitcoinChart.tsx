@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import axios from 'axios';
+import api from '../../Services/api.service';
 
 interface PricePoint {
     timestamp: number;
@@ -16,7 +16,7 @@ const BitcoinChart: React.FC = () => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get<PricePoint[]>('http://localhost:5144/api/crypto/chart/bitcoin?days=7');
+                const response = await api.get<PricePoint[]>('/crypto/chart/bitcoin?days=7');
 
                 const chartData = response.data.map((point) => ({
                     date: new Date(point.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),

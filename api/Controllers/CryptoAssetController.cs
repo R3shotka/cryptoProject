@@ -1,4 +1,3 @@
-using api.Data;
 using api.Dtos.CryptoAsset;
 using api.Mappers;
 using Microsoft.AspNetCore.Mvc;
@@ -12,13 +11,11 @@ namespace api.Controllers;
 [ApiController]
 public class CryptoAssetController : ControllerBase
 {
-    
-    private readonly ApplicationDBContext _context;
     private readonly ICryptoAssetRepository _cryptoAssetRepo;
     private readonly ICoinGeckoService _coinGeckoService;
-    public CryptoAssetController(ApplicationDBContext context,  ICryptoAssetRepository cryptoAssetRepo, ICoinGeckoService coinGeckoService)
+
+    public CryptoAssetController(ICryptoAssetRepository cryptoAssetRepo, ICoinGeckoService coinGeckoService)
     {
-        _context = context;
         _cryptoAssetRepo = cryptoAssetRepo;
         _coinGeckoService = coinGeckoService;
     }

@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(dotnet build *)",
+      "Bash(curl -s http://localhost:5144/api/crypto/top?limit=10)",
+      "Bash(dotnet run *)",
+      "Bash(curl -s 'http://localhost:5144/api/crypto/top?limit=10')",
+      "Bash(pkill -f \"dotnet run\")"
+    ]
+  }
+}

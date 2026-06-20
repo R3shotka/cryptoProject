@@ -1,9 +1,8 @@
 import React, { ChangeEvent, SyntheticEvent, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
-import { cryptoApi } from '../../Services/api.service';
+import api, { cryptoApi } from '../../Services/api.service';
 import { portfolioService } from '../../Services/portfolio.service';
 import AddPortfolio from '../../Components/Portfolio/AddPortfolio/AddPortfolio';
-import axios from 'axios';
 
 interface CryptoSearchResult {
     id?: number;
@@ -41,7 +40,7 @@ const SearchPage = (props: Props) => {
     const loadTopCryptos = async () => {
         try {
             setLoadingTop(true);
-            const response = await axios.get<TopCrypto[]>('http://localhost:5144/api/crypto/top?limit=10');
+            const response = await api.get<TopCrypto[]>('/crypto/top?limit=10');
             setTopCryptos(response.data);
         } catch (error) {
             console.error('Failed to load top cryptocurrencies', error);

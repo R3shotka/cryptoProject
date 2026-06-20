@@ -21,20 +21,36 @@ public class CommentRepository : ICommentRepository
         return  comments;
     }
 
-    public async Task<List<Comment>> GetAllAsync(int page, int pageSize)
+    public async Task<List<Comment>> GetAllAsync(int page, int pageSize, int? cryptoAssetId = null)
     {
-        var comments = await _context.Comments
+        var query = _context.Comments
             .Include(c => c.AppUser)
+            .AsQueryable();
+
+        if (cryptoAssetId.HasValue)
+        {
+            query = query.Where(c => c.CryptoAssetId == cryptoAssetId.Value);
+        }
+
+        var comments = await query
             .OrderByDescending(c => c.CreatedOn)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
+
         return comments;
     }
 
-    public async Task<int> GetTotalCountAsync()
+    public async Task<int> GetTotalCountAsync(int? cryptoAssetId = null)
     {
-        return await _context.Comments.CountAsync();
+        var query = _context.Comments.AsQueryable();
+
+        if (cryptoAssetId.HasValue)
+        {
+            query = query.Where(c => c.CryptoAssetId == cryptoAssetId.Value);
+        }
+
+        return await query.CountAsync();
     }
 
     public async Task<Comment?> GetByIdAsync(int id)

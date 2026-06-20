@@ -30,14 +30,17 @@ public class CommentController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    public async Task<ActionResult> GetAll(
+        [FromQuery] int? cryptoAssetId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
     {
         if (page < 1) page = 1;
         if (pageSize < 1) pageSize = 20;
         if (pageSize > 100) pageSize = 100; // максимум 100 за раз
 
-        var comments = await _commentRepo.GetAllAsync(page, pageSize);
-        var totalCount = await _commentRepo.GetTotalCountAsync();
+        var comments = await _commentRepo.GetAllAsync(page, pageSize, cryptoAssetId);
+        var totalCount = await _commentRepo.GetTotalCountAsync(cryptoAssetId);
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
         var commentsDto = comments.Select(c => c.ToCommentDto());

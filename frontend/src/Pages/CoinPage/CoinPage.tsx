@@ -30,9 +30,8 @@ const CoinPage = () => {
         if (!id) return;
 
         try {
-            const allComments = await commentService.getAll();
-            const filtered = allComments.filter(c => c.cryptoAssetId === parseInt(id));
-            setComments(filtered);
+            const result = await commentService.getAll({ cryptoAssetId: parseInt(id) });
+            setComments(result.data);
         } catch (error) {
             console.error('Failed to load comments', error);
         }

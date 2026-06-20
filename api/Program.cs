@@ -63,8 +63,6 @@ builder.Services.AddControllers().AddNewtonsoftJson(options =>
     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
 });
 
-builder.Services.AddControllers();
-
 // Add Memory Cache for rate limiting and caching external API calls
 builder.Services.AddMemoryCache();
 
