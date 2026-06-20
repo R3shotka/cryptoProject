@@ -44,10 +44,8 @@ public class PortfolioController : ControllerBase
 
         var userPortfolio = await _portfolioRepo.GetUserPortfolio(appUser);
 
-        var portfolioDtos = new List<PortfolioDto>();
-
-        // Для кожної криптовалюти отримуємо LIVE ціну з CoinGecko
-        foreach (var portfolioItem in userPortfolio)
+        // Паралельно отримуємо LIVE ціни для всіх активів з ExternalId
+        var portfolioDtoTasks = userPortfolio.Select(async portfolioItem =>
         {
             var currentPrice = portfolioItem.CryptoAsset.Price;
             var change24h = portfolioItem.CryptoAsset.Change24HPercent;
@@ -64,7 +62,7 @@ public class PortfolioController : ControllerBase
                 }
             }
 
-            var dto = new PortfolioDto
+            return new PortfolioDto
             {
                 CryptoAssetId = portfolioItem.CryptoAssetId,
                 Symbol = portfolioItem.CryptoAsset.Symbol,
@@ -75,9 +73,9 @@ public class PortfolioController : ControllerBase
                 Change24HPercent = change24h > 0 ? $"+{change24h:0.00}%" : $"{change24h:0.00}%",
                 LogoUrl = portfolioItem.CryptoAsset.LogoUrl
             };
+        });
 
-            portfolioDtos.Add(dto);
-        }
+        var portfolioDtos = await Task.WhenAll(portfolioDtoTasks);
 
         return Ok(portfolioDtos);
     }

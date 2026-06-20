@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace api.Controllers;
 
-[Route("api/comment")]
+[Route("api/[controller]")]
 [ApiController]
 [Authorize]
 public class CommentController : ControllerBase
@@ -30,11 +30,30 @@ public class CommentController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult> GetAll()
+    public async Task<ActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 20;
+        if (pageSize > 100) pageSize = 100; // максимум 100 за раз
+
         var comments = await _commentRepo.GetAllAsync();
-        var commentsDto = comments.Select(c => c.ToCommentDto());
-        return Ok(commentsDto);
+        var totalCount = comments.Count();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        var pagedComments = comments
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize);
+
+        var commentsDto = pagedComments.Select(c => c.ToCommentDto());
+
+        return Ok(new
+        {
+            data = commentsDto,
+            page,
+            pageSize,
+            totalCount,
+            totalPages
+        });
     }
 
     [HttpGet("{id:int}")]
