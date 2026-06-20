@@ -76,6 +76,7 @@ public class CryptoAssetController : ControllerBase
     
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateCryptoAssetRequesDto createCryptoAssetRequesDto)
     {
         var cryptoAssetModel = createCryptoAssetRequesDto.ToCryptoAssetFromCreateDto();
@@ -84,6 +85,7 @@ public class CryptoAssetController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateCryptoAssetDto updateCryptoAssetDto)
     {
         var cryptoAssetModel = await _cryptoAssetRepo.UpdateAsync(id,  updateCryptoAssetDto);
@@ -95,6 +97,7 @@ public class CryptoAssetController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize]
     public async Task<IActionResult> Delete([FromRoute] int id)
     {
         var cryptoAssetModel = await _cryptoAssetRepo.DeleteAsync(id);

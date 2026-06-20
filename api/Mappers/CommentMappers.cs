@@ -20,13 +20,14 @@ public static class CommentMappers
         };
     }
 
-    public static Comment ToCommentFromCreateDto(this CreateCommentDto createCommentDto, int cryptoAssetId)
+    public static Comment ToCommentFromCreateDto(this CreateCommentDto createCommentDto, int cryptoAssetId, string userId)
     {
         return new Comment
         {
             Title = createCommentDto.Title,
             Content = createCommentDto.Content,
-            CryptoAssetId = cryptoAssetId
+            CryptoAssetId = cryptoAssetId,
+            AppUserId = userId
         };
     }
 

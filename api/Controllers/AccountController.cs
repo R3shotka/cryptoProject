@@ -57,50 +57,43 @@ public class AccountController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
     {
-        try
+        if (!ModelState.IsValid)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            return BadRequest(ModelState);
+        }
 
-            var appUser = new AppUser
-            {
-                UserName = registerDto.Username,
-                Email = registerDto.Email
-            };
-            
-            var createdUser = await _userManager.CreateAsync(appUser, registerDto.Password);
+        var appUser = new AppUser
+        {
+            UserName = registerDto.Username,
+            Email = registerDto.Email
+        };
 
-            if (createdUser.Succeeded)
+        var createdUser = await _userManager.CreateAsync(appUser, registerDto.Password);
+
+        if (createdUser.Succeeded)
+        {
+            var roleResult = await _userManager.AddToRoleAsync(appUser, "User");
+            if (roleResult.Succeeded)
             {
-                var roleResult = await _userManager.AddToRoleAsync(appUser, "User");
-                if (roleResult.Succeeded)
+                var newUser =  new NewUserDto
                 {
-                    var newUser =  new NewUserDto
-                    {
-                        UserName = appUser.UserName,
-                        Email = appUser.Email,
-                        Token = _tokenService.CreateToken(appUser)
-                    };
-                    
-                    return Ok(newUser);
+                    UserName = appUser.UserName,
+                    Email = appUser.Email,
+                    Token = _tokenService.CreateToken(appUser)
+                };
 
-                }
-                else
-                {
-                    
-                    return StatusCode(500, roleResult.Errors );
-                }
+                return Ok(newUser);
+
             }
             else
             {
-                return StatusCode(500, createdUser.Errors );
+
+                return StatusCode(500, roleResult.Errors );
             }
         }
-        catch (Exception ex)
+        else
         {
-            return StatusCode(500, ex);
+            return StatusCode(500, createdUser.Errors );
         }
     }
     
