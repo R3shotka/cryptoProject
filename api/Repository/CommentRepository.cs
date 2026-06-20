@@ -21,6 +21,22 @@ public class CommentRepository : ICommentRepository
         return  comments;
     }
 
+    public async Task<List<Comment>> GetAllAsync(int page, int pageSize)
+    {
+        var comments = await _context.Comments
+            .Include(c => c.AppUser)
+            .OrderByDescending(c => c.CreatedOn)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+        return comments;
+    }
+
+    public async Task<int> GetTotalCountAsync()
+    {
+        return await _context.Comments.CountAsync();
+    }
+
     public async Task<Comment?> GetByIdAsync(int id)
     {
         var comment = await _context.Comments.Include(c => c.AppUser).FirstOrDefaultAsync(c => c.Id == id);

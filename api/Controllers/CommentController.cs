@@ -36,15 +36,11 @@ public class CommentController : ControllerBase
         if (pageSize < 1) pageSize = 20;
         if (pageSize > 100) pageSize = 100; // максимум 100 за раз
 
-        var comments = await _commentRepo.GetAllAsync();
-        var totalCount = comments.Count();
+        var comments = await _commentRepo.GetAllAsync(page, pageSize);
+        var totalCount = await _commentRepo.GetTotalCountAsync();
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
-        var pagedComments = comments
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize);
-
-        var commentsDto = pagedComments.Select(c => c.ToCommentDto());
+        var commentsDto = comments.Select(c => c.ToCommentDto());
 
         return Ok(new
         {
