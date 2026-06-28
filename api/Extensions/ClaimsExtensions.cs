@@ -1,8 +1,8 @@
 using System.Security.Claims;
 
-namespace api.Extentions;
+namespace api.Extensions;
 
-public static class ClaimsExtentions
+public static class ClaimsExtensions
 {
     public static string GetUsername(this ClaimsPrincipal user)
     {

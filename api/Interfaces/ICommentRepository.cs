@@ -9,7 +9,6 @@ namespace api.Interfaces;
 
 public interface ICommentRepository
 {
-    Task<List<Comment>> GetAllAsync();
     Task<List<Comment>> GetAllAsync(int page, int pageSize, int? cryptoAssetId = null);
     Task<int> GetTotalCountAsync(int? cryptoAssetId = null);
     Task<Comment?> GetByIdAsync(int id);

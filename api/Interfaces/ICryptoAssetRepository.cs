@@ -10,6 +10,7 @@ public interface ICryptoAssetRepository
     Task<List<CryptoAsset>> GetAllAsync(QueryObject query);
     Task <CryptoAsset?> GetByIdAsync(int id);
     Task<CryptoAsset?> GetByExternalIdAsync(string externalId);
+    Task<Dictionary<string, int>> GetIdsByExternalIdsAsync(List<string> externalIds);
     Task<List<CryptoAsset>> SearchAsync(string query);
     Task<CryptoAsset> CreateAsync(CryptoAsset cryptoAsset);
     Task<CryptoAsset?> UpdateAsync(int  id, UpdateCryptoAssetDto updateCryptoAssetDto);

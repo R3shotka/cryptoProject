@@ -1,5 +1,5 @@
 using api.Dtos.Portfolio;
-using api.Extentions;
+using api.Extensions;
 using api.Interfaces;
 using api.InterfacesService;
 using api.Models;

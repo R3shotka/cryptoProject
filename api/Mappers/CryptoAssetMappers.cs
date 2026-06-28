@@ -22,16 +22,16 @@ public static class CryptoAssetMappers
         };
     }
 
-    public static CryptoAsset ToCryptoAssetFromCreateDto(this CreateCryptoAssetRequesDto createCryptoAssetRequesDto)
+    public static CryptoAsset ToCryptoAssetFromCreateDto(this CreateCryptoAssetRequestDto createCryptoAssetRequestDto)
     {
         return new CryptoAsset
         {
-            Symbol = createCryptoAssetRequesDto.Symbol,
-            Name = createCryptoAssetRequesDto.Name,
-            ExternalId = createCryptoAssetRequesDto.ExternalId,
-            Price = createCryptoAssetRequesDto.Price,
-            
-            Change24HPercent = createCryptoAssetRequesDto.Change24HPercent
+            Symbol = createCryptoAssetRequestDto.Symbol,
+            Name = createCryptoAssetRequestDto.Name,
+            ExternalId = createCryptoAssetRequestDto.ExternalId,
+            Price = createCryptoAssetRequestDto.Price,
+
+            Change24HPercent = createCryptoAssetRequestDto.Change24HPercent
         };
     }
 }

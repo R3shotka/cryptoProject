@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace api.Dtos.CryptoAsset;
 
-public class CreateCryptoAssetRequesDto
+public class CreateCryptoAssetRequestDto
 {
     [Required]
     [StringLength(10, ErrorMessage = "Symbol cannot exceed 10 characters")]

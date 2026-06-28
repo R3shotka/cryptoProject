@@ -15,16 +15,12 @@ public class CommentRepository : ICommentRepository
     {
         _context = context;
     }
-    public async Task<List<Comment>> GetAllAsync()
-    {
-        var comments = await _context.Comments.Include(c => c.AppUser).ToListAsync();
-        return  comments;
-    }
 
     public async Task<List<Comment>> GetAllAsync(int page, int pageSize, int? cryptoAssetId = null)
     {
         var query = _context.Comments
             .Include(c => c.AppUser)
+            .AsNoTracking()
             .AsQueryable();
 
         if (cryptoAssetId.HasValue)
@@ -43,7 +39,7 @@ public class CommentRepository : ICommentRepository
 
     public async Task<int> GetTotalCountAsync(int? cryptoAssetId = null)
     {
-        var query = _context.Comments.AsQueryable();
+        var query = _context.Comments.AsNoTracking().AsQueryable();
 
         if (cryptoAssetId.HasValue)
         {

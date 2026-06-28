@@ -13,7 +13,7 @@ public class CryptoAssetDto
     public string? LogoUrl { get; set; }
     public string Change24HPercent { get; set; }  = string.Empty;
 
-    public List<CommentDto?> Comments { get; set; }
+    public List<CommentDto> Comments { get; set; }
 
 
 }

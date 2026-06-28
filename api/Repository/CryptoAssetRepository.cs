@@ -17,7 +17,7 @@ public class CryptoAssetRepository : ICryptoAssetRepository
     }
     public async Task<List<CryptoAsset>> GetAllAsync(QueryObject query)
     {
-        var assets = _context.CryptoAssets.Include(c => c.Comments).AsQueryable();
+        var assets = _context.CryptoAssets.Include(c => c.Comments).AsNoTracking().AsQueryable();
         if (!string.IsNullOrWhiteSpace(query.Symbol))
         {
             assets = assets.Where(c => c.Symbol.Contains(query.Symbol));
@@ -30,15 +30,15 @@ public class CryptoAssetRepository : ICryptoAssetRepository
 
         if (!string.IsNullOrWhiteSpace(query.SortBy))
         {
-            if (query.SortBy == "Symbol")
+            if (query.SortBy.Equals("Symbol", StringComparison.OrdinalIgnoreCase))
             {
                 assets = query.IsDescending ? assets.OrderByDescending(c => c.Symbol) : assets.OrderBy(c => c.Symbol);
             }
-            else if (query.SortBy == "Change24HPercent")
+            else if (query.SortBy.Equals("Change24HPercent", StringComparison.OrdinalIgnoreCase))
             {
                 assets = query.IsDescending ? assets.OrderByDescending(c => c.Change24HPercent) : assets.OrderBy(c => c.Change24HPercent);
             }
-            else if (query.SortBy == "Price")
+            else if (query.SortBy.Equals("Price", StringComparison.OrdinalIgnoreCase))
             {
                 assets = query.IsDescending ?  assets.OrderByDescending(c => c.Price) : assets.OrderBy(c => c.Price);
             }
@@ -51,13 +51,21 @@ public class CryptoAssetRepository : ICryptoAssetRepository
 
     public async Task<CryptoAsset?> GetByIdAsync(int id)
     {
-        return await _context.CryptoAssets.Include(c => c.Comments).FirstOrDefaultAsync(c => c.Id == id);
+        return await _context.CryptoAssets.Include(c => c.Comments).AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
 
     }
 
     public async Task<CryptoAsset?> GetByExternalIdAsync(string externalId)
     {
-        return await _context.CryptoAssets.FirstOrDefaultAsync(c => c.ExternalId == externalId);
+        return await _context.CryptoAssets.AsNoTracking().FirstOrDefaultAsync(c => c.ExternalId == externalId);
+    }
+
+    public async Task<Dictionary<string, int>> GetIdsByExternalIdsAsync(List<string> externalIds)
+    {
+        return await _context.CryptoAssets
+            .Where(a => externalIds.Contains(a.ExternalId))
+            .AsNoTracking()
+            .ToDictionaryAsync(a => a.ExternalId, a => a.Id);
     }
 
     public async Task<List<CryptoAsset>> SearchAsync(string query)
@@ -67,6 +75,7 @@ public class CryptoAssetRepository : ICryptoAssetRepository
             .Where(c => c.Symbol.ToLower().Contains(lowerQuery) ||
                         c.Name.ToLower().Contains(lowerQuery) ||
                         c.ExternalId.ToLower().Contains(lowerQuery))
+            .AsNoTracking()
             .Take(10)
             .ToListAsync();
     }

@@ -32,6 +32,7 @@ public class CryptoAssetController : ControllerBase
     
 
     [HttpGet("{id}")]
+    [Authorize]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
         var cryptoAsset = await _cryptoAssetRepo.GetByIdAsync(id);
@@ -44,6 +45,7 @@ public class CryptoAssetController : ControllerBase
     
     
     [HttpGet("{id}/live")]
+    [Authorize]
     public async Task<IActionResult> GetByIdWithCoinGeckoMarket([FromRoute] int id)
     {
         var cryptoAsset = await _cryptoAssetRepo.GetByIdAsync(id);
@@ -74,9 +76,9 @@ public class CryptoAssetController : ControllerBase
 
     [HttpPost]
     [Authorize]
-    public async Task<IActionResult> Create([FromBody] CreateCryptoAssetRequesDto createCryptoAssetRequesDto)
+    public async Task<IActionResult> Create([FromBody] CreateCryptoAssetRequestDto createCryptoAssetRequestDto)
     {
-        var cryptoAssetModel = createCryptoAssetRequesDto.ToCryptoAssetFromCreateDto();
+        var cryptoAssetModel = createCryptoAssetRequestDto.ToCryptoAssetFromCreateDto();
         await _cryptoAssetRepo.CreateAsync(cryptoAssetModel);
         return CreatedAtAction(nameof(GetById), new { id = cryptoAssetModel.Id }, cryptoAssetModel.ToCryptoAssetDto());
     }

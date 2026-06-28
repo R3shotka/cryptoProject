@@ -6,7 +6,7 @@ using api.Dtos.CryptoAsset;
 using api.Interfaces;
 using api.Mappers;
 using api.Models;
-using api.Extentions;
+using api.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 

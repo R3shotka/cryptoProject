@@ -28,13 +28,15 @@ public class CryptoController : ControllerBase
 
         var results = await _coinGeckoService.SearchAsync(query);
 
-        // Збагачуємо результати ID з бази даних
+        // Збагачуємо результати ID з бази даних (один запит замість N)
+        var externalIds = results.Select(r => r.ExternalId).ToList();
+        var existingAssets = await _cryptoAssetRepo.GetIdsByExternalIdsAsync(externalIds);
+
         foreach (var result in results)
         {
-            var cryptoAsset = await _cryptoAssetRepo.GetByExternalIdAsync(result.ExternalId);
-            if (cryptoAsset != null)
+            if (existingAssets.TryGetValue(result.ExternalId, out var id))
             {
-                result.Id = cryptoAsset.Id;
+                result.Id = id;
             }
         }
 
