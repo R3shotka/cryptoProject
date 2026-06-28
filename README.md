@@ -1,231 +1,222 @@
-# 🪙 Crypto Portfolio Tracker
+# Crypto Portfolio Tracker
 
-A full-stack web application for tracking cryptocurrency portfolios in real-time. Users can search for cryptocurrencies, manage their portfolio, and view live market prices through integration with the CoinGecko API.
+A full-stack web application for tracking cryptocurrency portfolios with live price data from the CoinGecko API.
 
-## 🎯 Project Overview
+![App screenshot](assets/preview.png)
+---
+![App screenshot](assets/previeww.png)
+---
 
-This project demonstrates a modern full-stack application with:
-- **Backend**: ASP.NET Core 8.0 Web API with JWT authentication
-- **Frontend**: React 19 with TypeScript and Tailwind CSS
-- **Database**: SQL Server with Entity Framework Core
-- **External API**: CoinGecko API integration for real-time crypto data
+## Tech Stack
 
-## ✨ Features
+**Backend**
+- ASP.NET Core Web API (.NET 8)
+- ASP.NET Core Identity + JWT authentication
+- Entity Framework Core + SQL Server
+- CoinGecko API integration (IMemoryCache + SemaphoreSlim rate limiting)
+- Repository Pattern, DI
+- Swagger (API docs)
 
-### Authentication & Authorization
-- User registration and login with JWT tokens
-- Secure password requirements (uppercase, lowercase, digits, minimum length)
-- Protected routes requiring authentication
-- Token-based API authorization
+**Frontend**
+- React 19 + TypeScript
+- Recharts (price charts)
+- Tailwind CSS
+- React Router v7
 
-### Cryptocurrency Management
-- Search cryptocurrencies using CoinGecko API
-- View real-time market data (price, 24h change)
-- Add cryptocurrencies to personal portfolio
-- Track multiple crypto assets
-- Add comments/notes for each asset
+---
 
-### Technical Features
-- **Rate Limiting**: Caching for external API calls to prevent hitting rate limits
-- **Global Error Handling**: Consistent error responses across the API
-- **Input Validation**: DataAnnotations on all DTOs
-- **CORS Configuration**: Proper cross-origin setup for frontend-backend communication
-- **Repository Pattern**: Clean separation of concerns
-- **Unit Tests**: Comprehensive test coverage for repositories
+## Features
 
-## 🛠️ Tech Stack
+- **User accounts** — register and log in with JWT-based authentication; passwords validated by ASP.NET Core Identity rules (length, uppercase, digit).
+- **Live prices** — cryptocurrency data (price, 24 h change, logo) fetched from CoinGecko API with in-memory caching and concurrency limiting via `SemaphoreSlim`.
+- **Portfolio management** — add assets by symbol, track quantity and total value; portfolio page fetches live prices in parallel via `Task.WhenAll` for fast loading.
+- **Price charts** — historical price chart (7 / 30 / 90 days) rendered with Recharts.
+- **Search** — search CoinGecko for any coin; results are enriched with local database IDs in a single query to avoid N+1.
+- **Community notes** — authenticated users can leave comments on any asset; paginated list with create, update, delete (own comments only).
+- **API documentation** — Swagger UI with JWT bearer support in development.
 
-### Backend
-- **ASP.NET Core 8.0** - Web API framework
-- **Entity Framework Core 8.0** - ORM for database access
-- **ASP.NET Identity** - User authentication and authorization
-- **JWT Bearer Authentication** - Secure token-based auth
-- **SQL Server** - Relational database
-- **Swagger/OpenAPI** - API documentation
-- **xUnit** - Unit testing framework
-- **Moq** - Mocking library for tests
+---
 
-### Frontend
-- **React 19** - UI library
-- **TypeScript** - Type-safe JavaScript
-- **React Router 7** - Client-side routing
-- **Axios** - HTTP client
-- **Tailwind CSS 3** - Utility-first CSS framework
-- **Context API** - State management
+## Architecture
 
-## 📁 Project Structure
+Single-project backend with layered organisation:
 
 ```
-CryptoProject/
-├── api/                          # Backend ASP.NET Core API
-│   ├── Controllers/              # API endpoints
-│   ├── Services/                 # Business logic (CoinGecko integration)
-│   ├── Repository/               # Data access layer
-│   ├── Models/                   # Entity models
-│   ├── Dtos/                     # Data transfer objects
-│   ├── Interfaces/               # Repository interfaces
-│   ├── InterfacesService/        # Service interfaces
-│   ├── Middleware/               # Custom middleware (exception handling)
-│   ├── Data/                     # Database context
-│   ├── Migrations/               # EF Core migrations
-│   └── Program.cs                # Application entry point
-├── api.Tests/                    # Unit tests
-│   ├── CryptoAssetRepositoryTests.cs
-│   └── CryptoAssetControllerIntegrationTests.cs
-└── frontend/                     # React TypeScript frontend
-    └── src/
-        ├── Components/           # Reusable UI components
-        ├── Pages/                # Page components (Login, Register, Search)
-        ├── Context/              # React Context (AuthContext)
-        ├── Services/             # API service layer
-        └── Routes/               # Route configuration
+api/
+├── Controllers/    AccountController, CryptoController, CryptoAssetController,
+│                   PortfolioController, CommentController
+├── Repository/     CryptoAssetRepository, CommentRepository, UserAssetsBalanceRepository
+├── Services/       CoinGeckoService (external API), TokenService (JWT)
+├── Interfaces/     Repository and service contracts
+├── Models/         AppUser (IdentityUser), CryptoAsset, Comment, UserAssetBalance
+├── Dtos/           Request and response DTOs per feature
+├── Mappers/        Manual extension-method mappers
+├── Middleware/     GlobalExceptionMiddleware
+├── Migrations/     EF Core migrations
+└── Helpers/        QueryObject (filtering + pagination)
 ```
 
-## 🚀 Getting Started
+**Many-to-many relationship** between `AppUser` and `CryptoAsset` is modelled through `UserAssetBalance` which also stores the quantity held.
+
+---
+
+## API
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/api/account/register` | — | Create account |
+| `POST` | `/api/account/login` | — | Log in, receive JWT |
+| `GET` | `/api/crypto/top` | — | Top N coins by market cap |
+| `GET` | `/api/crypto/search?query=btc` | — | Search CoinGecko |
+| `GET` | `/api/crypto/chart/{externalId}?days=7` | — | Historical price data |
+| `GET` | `/api/CryptoAsset` | ✅ | List assets (filterable, paginated) |
+| `GET` | `/api/CryptoAsset/{id}/live` | ✅ | Asset with live CoinGecko price |
+| `POST` | `/api/CryptoAsset` | ✅ | Create asset |
+| `PUT` | `/api/CryptoAsset/{id}` | ✅ | Update asset |
+| `DELETE` | `/api/CryptoAsset/{id}` | ✅ | Delete asset |
+| `GET` | `/api/Portfolio` | ✅ | User portfolio with live prices |
+| `POST` | `/api/Portfolio` | ✅ | Add asset to portfolio |
+| `DELETE` | `/api/Portfolio?symbol=BTC` | ✅ | Remove from portfolio |
+| `GET` | `/api/Comment?cryptoAssetId=1` | ✅ | Paginated comments |
+| `POST` | `/api/Comment/{cryptoAssetId}` | ✅ | Add comment |
+| `PUT` | `/api/Comment/{id}` | ✅ | Edit own comment |
+| `DELETE` | `/api/Comment/{id}` | ✅ | Delete own comment |
+
+---
+
+## Getting Started
 
 ### Prerequisites
-- [.NET 8.0 SDK](https://dotnet.microsoft.com/download)
-- [Node.js 18+](https://nodejs.org/)
-- [SQL Server](https://www.microsoft.com/sql-server) (or SQL Server Express)
-- [CoinGecko API Key](https://www.coingecko.com/en/api) (free tier)
 
-### Backend Setup
+- [.NET 8 SDK](https://dotnet.microsoft.com/download)
+- SQL Server (local) or any EF Core-compatible database
+- CoinGecko API key (free demo key at [coingecko.com](https://www.coingecko.com/en/api))
 
-1. **Clone the repository**
+### 1. Clone the repository
+
 ```bash
-git clone <your-repo-url>
-cd CryptoProject/api
+git clone https://github.com/R3shotka/cryptoProject.git
+cd cryptoProject
 ```
 
-2. **Configure appsettings.json**
+### 2. Configure the backend
+
+Copy the example config and fill in real values:
+
+```bash
+cp api/appsettings.Example.json api/appsettings.json
+```
+
+Edit `api/appsettings.json`:
+
 ```json
 {
+  "CoinGecko": {
+    "DemoApiKey": "YOUR_COINGECKO_API_KEY"
+  },
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Database=CryptoDb;Trusted_Connection=true;TrustServerCertificate=true;"
+    "DefaultConnection": "Server=localhost,1433;Database=cryptodb;User Id=sa;Password=YOUR_PASSWORD;TrustServerCertificate=True"
   },
   "JWT": {
-    "Issuer": "http://localhost:5000",
-    "Audience": "http://localhost:5000",
-    "SigningKey": "YourSecretKeyHereMustBeAtLeast32CharactersLong"
-  },
-  "CoinGecko": {
-    "DemoApiKey": "your-coingecko-api-key"
+    "Issuer": "http://localhost:5144",
+    "Audience": "http://localhost:5144",
+    "SigningKey": "YOUR_JWT_SIGNING_KEY_AT_LEAST_256_BITS"
   }
 }
 ```
 
-3. **Run database migrations**
+### 3. Apply migrations
+
 ```bash
+cd api
 dotnet ef database update
 ```
 
-4. **Run the API**
+### 4. Run the backend
+
 ```bash
 dotnet run
 ```
 
-The API will be available at `http://localhost:5000`
-Swagger documentation: `http://localhost:5000/swagger`
+Swagger UI is available at `https://localhost:{port}/swagger`.
 
-### Frontend Setup
+### 5. Run the frontend
 
-1. **Navigate to frontend directory**
 ```bash
-cd ../frontend
-```
-
-2. **Install dependencies**
-```bash
+cd frontend
 npm install
+npm start        # http://localhost:3000
 ```
 
-3. **Configure API URL**
-Update `frontend/src/Services/api.service.ts` if your backend runs on a different port:
-```typescript
-const API_BASE_URL = 'http://localhost:5000/api';
-```
+Create `frontend/.env` from the example:
 
-4. **Run the development server**
 ```bash
-npm start
+cp frontend/.env.example frontend/.env
+# set REACT_APP_API_URL=http://localhost:5144
 ```
-
-The app will open at `http://localhost:3000`
-
-## 🧪 Running Tests
-
-### Backend Unit Tests
-```bash
-cd api.Tests
-dotnet test
-```
-
-Expected output: `Passed: 10, Failed: 0`
-
-## 📡 API Endpoints
-
-### Authentication
-- `POST /api/Account/register` - Register new user
-- `POST /api/Account/login` - Login and get JWT token
-
-### Crypto Assets
-- `GET /api/CryptoAsset` - Get all crypto assets (requires auth)
-- `GET /api/CryptoAsset/{id}` - Get asset by ID
-- `GET /api/CryptoAsset/{id}/live` - Get asset with live market data
-- `POST /api/CryptoAsset` - Create new asset
-- `PUT /api/CryptoAsset/{id}` - Update asset
-- `DELETE /api/CryptoAsset/{id}` - Delete asset
-
-### Search
-- `GET /api/Crypto/search?query={query}` - Search cryptocurrencies
-
-### Comments
-- `GET /api/Comment/{assetId}` - Get comments for asset
-- `POST /api/Comment/{assetId}` - Add comment
-- `PUT /api/Comment/{id}` - Update comment
-- `DELETE /api/Comment/{id}` - Delete comment
-
-## 🔐 Security Features
-
-- **JWT Authentication**: Secure token-based authentication
-- **Password Requirements**: Enforced strong password policy
-- **CORS Configuration**: Restricted to frontend origin only
-- **Input Validation**: All DTOs validated with DataAnnotations
-- **Secure Secret Management**: Secrets stored in appsettings (not hardcoded)
-- **Rate Limiting**: Prevents abuse of external API calls
-
-## 🎨 Screenshots
-
-### Login Page
-Clean authentication interface with form validation
-
-### Search Page
-Real-time cryptocurrency search with live market data
-
-### Portfolio View
-Track your crypto assets with current prices and 24h changes
-
-## 🤝 Contributing
-
-This is a portfolio project, but feedback and suggestions are welcome!
-
-## 📝 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
-## 👤 Author
-
-**Your Name**
-- GitHub: [@your-github](https://github.com/your-github)
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/your-profile)
-- Email: mrkudik368@gmail.com
-
-## 🙏 Acknowledgments
-
-- [CoinGecko API](https://www.coingecko.com/) for cryptocurrency data
-- [ASP.NET Core Documentation](https://docs.microsoft.com/aspnet/core)
-- [React Documentation](https://react.dev)
 
 ---
 
-**Built with ❤️ as a portfolio project to demonstrate full-stack development skills**
+## Running Tests
+
+```bash
+dotnet test
+```
+
+Tests live in `api.Tests/` and cover:
+
+- `CryptoAssetRepositoryTests` — unit tests with EF Core InMemory database: GetAll, GetById, Create, Update, Delete, filtering by symbol, sorting by price.
+- `CryptoAssetControllerIntegrationTests` — integration tests with `WebApplicationFactory`: 404 on missing asset, 201 on valid create, 400 on invalid data.
+
+---
+
+## Project Structure
+
+```
+cryptoProject/
+├── api/
+│   ├── Controllers/
+│   │   ├── AccountController.cs        register, login
+│   │   ├── CryptoController.cs         CoinGecko search, top, chart
+│   │   ├── CryptoAssetController.cs    CRUD + live price endpoint
+│   │   ├── PortfolioController.cs      user portfolio with live prices
+│   │   └── CommentController.cs        paginated comments, own-only edit/delete
+│   ├── Repository/
+│   │   ├── CryptoAssetRepository.cs    filtering, sorting, pagination, search
+│   │   ├── CommentRepository.cs        paginated fetch + total count
+│   │   └── UserAssetsBalanceRepository.cs  many-to-many portfolio
+│   ├── Services/
+│   │   ├── CoinGeckoService.cs         IMemoryCache + SemaphoreSlim(5)
+│   │   └── TokenService.cs             JWT generation
+│   ├── Models/                         AppUser, CryptoAsset, Comment, UserAssetBalance
+│   ├── Dtos/                           per-feature request/response DTOs
+│   ├── Mappers/                        manual extension-method mappers
+│   ├── Middleware/                     GlobalExceptionMiddleware
+│   └── Migrations/
+│
+├── api.Tests/
+│   ├── CryptoAssetRepositoryTests.cs
+│   ├── CryptoAssetControllerIntegrationTests.cs
+│   └── CustomWebApplicationFactory.cs
+│
+└── frontend/
+    └── src/
+        ├── Pages/      HomePage, CoinPage, PortfolioPage, SearchPage, LoginPage, RegisterPage
+        ├── Components/ Search, BitcoinChart, Portfolio, Comment, Navbar, ProtectedRoute
+        ├── Services/   api.service.ts, comment.service.ts, portfolio.service.ts
+        └── Context/    AuthContext.tsx
+```
+
+---
+
+## Key Technical Decisions
+
+**CoinGecko rate limiting.** The free CoinGecko API has strict rate limits. `CoinGeckoService` uses `SemaphoreSlim(5)` to cap concurrent outbound requests and `IMemoryCache` to cache responses (search: 30 min, market data: 5 min, historical: 30 min). This prevents 429 errors under normal usage without an external cache dependency.
+
+**Parallel portfolio pricing.** `PortfolioController` fetches live prices for all portfolio assets simultaneously with `Task.WhenAll` instead of sequentially — loading time scales with the slowest single request, not the sum of all.
+
+**Search enrichment in one query.** When enriching CoinGecko search results with local database IDs, the controller collects all `externalId` values and calls `GetIdsByExternalIdsAsync` once, then maps results in memory — avoiding an N+1 query pattern.
+
+**Own-comment-only edit/delete.** `CommentController` checks `existingComment.AppUserId != appUser.Id` before allowing update or delete, returning `403 Forbidden` rather than `404` to distinguish "not found" from "not allowed".
+
+**JWT with ASP.NET Core Identity.** `TokenService` generates signed JWTs; `ClaimsExtensions` reads the username claim from `HttpContext.User` in controllers — decoupling claim parsing from controller logic.
